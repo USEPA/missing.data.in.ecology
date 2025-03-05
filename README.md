@@ -1,6 +1,6 @@
 # missing.data.in.ecology
 
-### A Supplementary R Package to to "Missing data in ecology: Some synthesis, clarifications, and recommendations"
+### A Supplementary R Package to "Missing data in ecology: Some synthesis, clarifications, and recommendations"
 
 ##### Michael Dumelle<sup>1</sup>, Rob Trangucci<sup>2</sup>, Amanda M. Nahlik<sup>1</sup>, Anthony R. Olsen<sup>1</sup>, Kathryn M. Irvine<sup>3</sup>, Karen Blocksom<sup>1</sup>, Jay M. Ver Hoef<sup>4</sup>, Claudio Fuentes<sup>2</sup> 
 
