@@ -24,7 +24,7 @@ This supplementary R package contains all files used to generate components of t
 To install the supplementary R package, either install the tarball provided alongside the submission or run
 ```r
 install.packages("remotes") # if you don't already have remotes installed
-remotes::install_github("michaeldumelle/spmodel.manuscript", ref = "main", dependencies = TRUE)
+remotes::install_github("USEPA/missing.data.in.ecology")
 ```
 
 The package must be installed to view any of the files we discuss throughout this `README` on your machine. This package does not have to be installed to view any of these files if you want to look at them interactively using this GitHub repository.
