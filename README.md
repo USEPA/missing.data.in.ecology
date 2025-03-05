@@ -52,7 +52,7 @@ system.file("output", package = "missing.data.in.ecology")
 
 The raw figures are available at the file path found by running
 ```r
-system.file("figures", package = "spmodel.manuscript")
+system.file("figures", package = "missing.data.in.ecology")
 ```
 
 ### Disclaimer
