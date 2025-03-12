@@ -14,12 +14,12 @@ nwca <- nwca |>
 
 # change name of NA
 nwca <- nwca %>%
-  mutate(NTL_COND = if_else(NTL_COND == "Not Assessed", "No Water", NTL_COND))
+  mutate(NTL_COND = if_else(NTL_COND == "Not Assessed", "No Surface Water", NTL_COND))
 
 nwca_sf <- nwca %>%
   st_as_sf(crs = 4269, coords = c("LON_DD83", "LAT_DD83")) %>%
   # st_transform(crs = 5070) %>%
-  mutate(NTL_COND = factor(NTL_COND, levels = c("Good", "Fair", "Poor", "No Water")))
+  mutate(NTL_COND = factor(NTL_COND, levels = c("Good", "Fair", "Poor", "No Surface Water")))
 
 # display tables
 table(nwca_sf$NTL_COND)
@@ -89,33 +89,36 @@ ntl_plot_miss <- ggplot(ntl_cond_miss, aes(x = Category, y = Estimate.P, fill = 
   )
 
 # default 6.03 x 4.97 in
-ggsave(
-  filename = here("inst", "figures", "water-present-1.jpeg"),
-  plot = ntl_plot_miss,
-  dpi = 300,
-  units = "in",
-  width = 6.03,
-  height = 4.97
-)
+# ggsave(
+#   filename = here("inst", "figures", "water-present-1.jpeg"),
+#   plot = ntl_plot_miss,
+#   dpi = 300,
+#   units = "in",
+#   width = 6.03,
+#   height = 4.97
+# )
+
+# nwca <- nwca |>
+#   mutate(SW_SAMPLEABLE = replace_na(SW_SAMPLEABLE, "M")) |>
+#   mutate(CHEM_NOT_COLLECTED = replace_na(CHEM_NOT_COLLECTED, "M")) |>
+#   mutate(MICX_NOT_COLLECTED = replace_na(MICX_NOT_COLLECTED, "M")) |>
+#   mutate(WCHL_NOT_COLLECTED = replace_na(WCHL_NOT_COLLECTED, "M")) |>
+#   mutate(CMW_NOT_COLLECTED = str_c(CHEM_NOT_COLLECTED, MICX_NOT_COLLECTED,
+#                                     WCHL_NOT_COLLECTED)) |>
+#   mutate(WATER_PRESENT = case_when(
+#     CMW_NOT_COLLECTED == "YYY" ~ "No",
+#     CMW_NOT_COLLECTED == "MMY" ~ "Yes",
+#     CMW_NOT_COLLECTED == "MMM" ~ "Yes")
+#   )
 
 nwca <- nwca |>
-  mutate(SW_SAMPLEABLE = replace_na(SW_SAMPLEABLE, "M")) |>
-  mutate(CHEM_NOT_COLLECTED = replace_na(CHEM_NOT_COLLECTED, "M")) |>
-  mutate(MICX_NOT_COLLECTED = replace_na(MICX_NOT_COLLECTED, "M")) |>
-  mutate(WCHL_NOT_COLLECTED = replace_na(WCHL_NOT_COLLECTED, "M")) |>
-  mutate(CMW_NOT_COLLECTED = str_c(CHEM_NOT_COLLECTED, MICX_NOT_COLLECTED,
-                                    WCHL_NOT_COLLECTED)) |>
-  mutate(WATER_PRESENT = case_when(
-    CMW_NOT_COLLECTED == "YYY" ~ "No",
-    CMW_NOT_COLLECTED == "MMY" ~ "Yes",
-    CMW_NOT_COLLECTED == "MMM" ~ "Yes")
-  )
+  mutate(WATER_PRESENT = if_else(SAMPLEABLE_H2O == "Yes", "Yes", "No"))
 
 # add missing no water
 nwca <- nwca |>
   mutate(NTL_MISSING_REASON = case_when(
     NTL_COND != "Missing" ~ "Not Missing",
-    NTL_COND == "Missing" & WATER_PRESENT == "No" ~ "No Water",
+    NTL_COND == "Missing" & WATER_PRESENT == "No" ~ "No Surface Water",
     NTL_COND == "Missing" & WATER_PRESENT == "Yes" ~ "Other"
   ))
 
@@ -144,7 +147,7 @@ h20_cond_miss <- h20_cond_miss |>
 h20_plot <- ggplot(h20_cond_miss, aes(x = Category, y = Estimate.P, fill = Category)) +
   geom_bar(stat = "identity", width = 0.5) +
   geom_errorbar(aes(ymin = LCB95Pct.P, ymax = UCB95Pct.P), color = "black", linewidth = 0.75, width = 0.5) +
-  labs(y = "Percent", x = "Water Present") +
+  labs(y = "Percent", x = "Surface Water Present") +
   scale_fill_manual(values = c("Yes" = "#A5CFE3", "No" = "#FEC98DFF")) +
   theme_bw(base_size = 20) +
   theme(
@@ -177,7 +180,7 @@ ntl_cond_nomiss <- ntl_cond_nomiss |>
 ntl_plot_nomiss <- ggplot(ntl_cond_nomiss, aes(x = Category, y = Estimate.P, fill = Category)) +
   geom_bar(stat = "identity", width = 0.5) +
   geom_errorbar(aes(ymin = LCB95Pct.P, ymax = UCB95Pct.P), color = "black", linewidth = 0.75, width = 0.5) +
-  labs(y = "Percent (Water Present)", x = "Nitrogen Condition Class") +
+  labs(y = "Percent (Surface Water Present)", x = "Nitrogen Condition Class") +
   scale_fill_viridis_d(option = "A", begin = 0.3, end = 0.7) +
   theme_bw(base_size = 20) +
   theme(
