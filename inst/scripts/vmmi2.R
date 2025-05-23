@@ -148,7 +148,7 @@ imps <- mice(
   dat_train,
   m = m,
   formulas = formulas,
-  method = "pmm",
+  method = "norm.boot", # or pmm
   printFlag = FALSE
 )
 
