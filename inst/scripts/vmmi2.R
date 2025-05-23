@@ -117,12 +117,12 @@ glances(lmod, spmod)
 
 dat_train <- dat_train %>%
   mutate(
-    PALT_SOHARD_MISS = map_dbl(IS_WOODY, sim_missing)
-    #VMMI_2016_MISS = map_dbl(IS_WOODY, sim_missing)
+    PALT_SOHARD_MISS = map_dbl(IS_WOODY, sim_missing)# ,
+    # VMMI_2016_MISS = map_dbl(IS_WOODY, sim_missing)
   ) %>%
   mutate(
-    PALT_SOHARD = if_else(PALT_SOHARD_MISS == 1, NA, PALT_SOHARD)
-    #VMMI_2016 = if_else(VMMI_2016_MISS == 1, NA, VMMI_2016)
+    PALT_SOHARD = if_else(PALT_SOHARD_MISS == 1, NA, PALT_SOHARD)# ,
+    # VMMI_2016 = if_else(VMMI_2016_MISS == 1, NA, VMMI_2016)
   )
 
 lmod_cc <- splm(form, data = drop_na(dat_train), spcov_type = "none")
@@ -139,7 +139,8 @@ spmod_cc_preds <- predict(spmod_cc, newdata = dat_test, interval = "prediction")
 m <- 100
 formulas <- list(
   # PALT_SOHARD ~ VMMI_2016
-  PALT_SOHARD ~ IS_WOODY + VMMI_2016
+  PALT_SOHARD ~ IS_WOODY + VMMI_2016# ,
+  # VMMI_2016 ~ PALT_SOHARD + IS_WOODY
 )
 formulas <- name.formulas(formulas)
 
@@ -222,8 +223,15 @@ stats_out <- stats_out %>%
   mutate(rank_MSPE = rank(MSPE), rank_cor = rank(desc(cor))) %>%
   arrange(rank_MSPE)
 
+lik_out <- tibble(
+  AIC = c(AIC(lmod), AIC(spmod), AIC(lmod_cc), AIC(spmod_cc)),
+  BIC = c(BIC(lmod), BIC(spmod), BIC(lmod_cc), BIC(spmod_cc)),
+  type = c("none-all", "sp-all", "none-cc", "sp-cc")
+)
+
 write_csv(fixed_out, str_c(here("inst", "output", "vmmi"), "/fixed2.csv"))
 write_csv(stats_out, str_c(here("inst", "output", "vmmi"), "/stats2.csv"))
+write_csv(stats_out, str_c(here("inst", "output", "vmmi"), "/lik2.csv"))
 lmods <- with(imps, lm(VMMI_2016 ~ IS_WOODY + PALT_SOHARD))
 fixed_out_lm <- tidy(pool(lmods))[, 1:5]
 write_csv(fixed_out_lm, str_c(here("inst", "output", "vmmi"), "/fixed_lm2.csv"))
