@@ -11,20 +11,20 @@ get_trial <- function(trial) {
     set.seed(trial)
 
     if (imp_include) {
-      part1 <- "imp-yes"
+      part1 <- "x2-imp-yes"
     } else {
-      part1 <- "imp-no"
+      part1 <- "x2-imp-no"
     }
     if (mod_include) {
-      part2 <- "mod-yes"
+      part2 <- "x2-mod-yes"
     } else {
-      part2 <- "mod-no"
+      part2 <- "x2-mod-no"
     }
 
     if (include_y) {
-      part3 <- "y-yes"
+      part3 <- "y-imp-yes"
     } else {
-      part3 <- "y-no"
+      part3 <- "y-imp-no"
     }
     method <- str_c(part1, part2, part3, sep = "_")
     # specify data
@@ -57,6 +57,7 @@ get_trial <- function(trial) {
       mutate(x2 = if_else(x2_BINOM == 1, NA, x2)) %>%
       mutate(y = if_else(y_BINOM == 1, NA, y))
 
+    mice_method <- "norm.boot"
     if (include_y) {
       if (imp_include) {
         formulas <- list(
@@ -76,24 +77,31 @@ get_trial <- function(trial) {
           x2 ~ x1
         )
       } else {
+        # if (mice_method == "norm.boot") {
+        #   mice_method <- "norm" # bug with intercept only and norm.boot
+        # }
+        dat_train$dummy <- rnorm(NROW(dat_train), mean = 0, sd = .1) # bug with intercept only and norm.boot, need to add small noise
         formulas <- list(
           y ~ x2,
-          x2 ~ 1
+          x2 ~ dummy
         )
       }
     }
 
     formulas <- name.formulas(formulas)
 
+
     m <- 100
     imps <- mice(
       dat_train,
       m = m,
       formulas = formulas,
-      method = "pmm",
+      method = mice_method,
       printFlag = FALSE,
+      # donors = 3,
       maxit = 5
     )
+
 
     if (mod_include) {
       lmods <- with(imps, lm(y ~ x1 + x2))
@@ -150,8 +158,8 @@ get_trial <- function(trial) {
 
 
 
-nsim <- 48
-nc <- 12
+nsim <- 2004
+nc <- 50
 cl <- makeCluster(nc)
 clusterEvalQ(cl, {
   library(tidyverse)
@@ -168,6 +176,6 @@ out_success <- map(out, ~ .x$result)[!errors]
 out <- bind_rows(out_success)
 out_summary <- out %>%
   group_by(term, method) %>%
-  summarize(mbias = mean(error), mse = mean(error^2), mvar = mean(std.error^2), cover = mean(cover), .groups = "drop")
+  summarize(mbias = mean(error), rmse = sqrt(mean(error^2)), cover = mean(cover), .groups = "drop")
 out_summary
 write_csv(out_summary, here("inst", "output", "simulation", "out_summary.csv"))

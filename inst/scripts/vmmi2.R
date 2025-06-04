@@ -231,7 +231,7 @@ lik_out <- tibble(
 
 write_csv(fixed_out, str_c(here("inst", "output", "vmmi"), "/fixed2.csv"))
 write_csv(stats_out, str_c(here("inst", "output", "vmmi"), "/stats2.csv"))
-write_csv(stats_out, str_c(here("inst", "output", "vmmi"), "/lik2.csv"))
+write_csv(lik_out, str_c(here("inst", "output", "vmmi"), "/lik2.csv"))
 lmods <- with(imps, lm(VMMI_2016 ~ IS_WOODY + PALT_SOHARD))
 fixed_out_lm <- tidy(pool(lmods))[, 1:5]
 write_csv(fixed_out_lm, str_c(here("inst", "output", "vmmi"), "/fixed_lm2.csv"))

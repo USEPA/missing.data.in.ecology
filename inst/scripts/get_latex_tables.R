@@ -160,16 +160,5 @@ fixed <- read_csv(here("inst", "output", "vmmi", "fixed2.csv")) %>%
 
 print(xtable(fixed %>% select(Parameter, `sp-all`, `sp-missing`, `sp-cc`)), include.rownames = FALSE)
 
-stats <- read_csv(here("inst", "output", "vmmi", "stats2.csv")) %>%
-  mutate(Model = if_else(str_detect(type, "sp"), "Spatial", "Nonspatial")) %>%
-  mutate(Approach = case_when(
-    str_detect(type, "missing") ~ "Multiple Imputation",
-    str_detect(type, "all") ~ "All Data",
-    str_detect(type, "cc") ~ "Complete Case"
-  )) %>%
-  mutate(across(c(bias:BIC), \(x) format(round(x, digits = 2)))) %>%
-  select(Model, Approach, Bias = bias, RMSPE, R2 = cor2) %>%
-  mutate(Approach = factor(Approach, levels = c("All Data", "Multiple Imputation", "Complete Case"))) %>%
-  arrange(Model, Approach)
-
-print(xtable(stats), include.rownames = FALSE)
+stats <- read_csv(here("inst", "output", "vmmi", "stats2.csv"))
+print(xtable(stats %>% select(type, MBias = bias, RMSPE, PCover95 = cover95), digits = 3), include.rownames = FALSE)
