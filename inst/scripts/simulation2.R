@@ -176,6 +176,6 @@ out_success <- map(out, ~ .x$result)[!errors]
 out <- bind_rows(out_success)
 out_summary <- out %>%
   group_by(term, method) %>%
-  summarize(mbias = mean(error), rmse = sqrt(mean(error^2)), cover = mean(cover), .groups = "drop")
+  summarize(mbias = mean(error), rmse = sqrt(mean(error^2)), sterr = mean(std.error), cover = mean(cover), .groups = "drop")
 out_summary
-write_csv(out_summary, here("inst", "output", "simulation", "out_summary.csv"))
+write_csv(out_summary, here("inst", "output", "simulation", "crossing_summary.csv"))

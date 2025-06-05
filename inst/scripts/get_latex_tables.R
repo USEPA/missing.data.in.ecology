@@ -162,3 +162,14 @@ print(xtable(fixed %>% select(Parameter, `sp-all`, `sp-missing`, `sp-cc`)), incl
 
 stats <- read_csv(here("inst", "output", "vmmi", "stats2.csv"))
 print(xtable(stats %>% select(type, MBias = bias, RMSPE, PCover95 = cover95), digits = 3), include.rownames = FALSE)
+
+
+# crossing output
+crossing <- read_csv(here("inst", "output", "simulation", "crossing_summary.csv")) %>%
+  arrange(desc(term)) %>%
+  separate(method, c("x2_imp", "x2_mod", "y_imp"), sep = "_") %>%
+  mutate(across(c(x2_imp, x2_mod, y_imp), \(x) map_chr(str_split(x, "-"), \(y) y[3]))) %>%
+  mutate(across(c(x2_imp, x2_mod, y_imp), str_to_title)) %>%
+  pivot_wider(names_from = term, values_from = c(mbias, rmse, sterr, cover), names_vary = "slowest")
+
+print(xtable(crossing), include.rownames = FALSE)
