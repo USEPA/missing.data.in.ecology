@@ -62,6 +62,7 @@ get_stats <- function(fits, p) {
     bias = mean(pred_fits$resid),
     MSPE = mean(pred_fits$resid^2),
     RMSPE = sqrt(MSPE),
+    se = mean(pred_fits$se),
     cor = cor(pred_fits$VMMI_2016, pred_fits$fit),
     cover95 = mean(pred_fits$cover)
   )
@@ -100,14 +101,14 @@ lmod <- splm(form, data = dat_train, spcov_type = "none")
 summary(lmod)
 loocv(lmod)
 
-lmod_preds <- predict(lmod, newdata = dat_test, interval = "prediction")
+lmod_preds <- predict(lmod, newdata = dat_test, interval = "prediction", se.fit = TRUE)
 
 
 # spatial model
 spmod <- splm(form, data = dat_train, spcov_type = "exponential", xcoord = XCOORD, ycoord = YCOORD)
 summary(spmod)
 loocv(spmod)
-spmod_preds <- predict(spmod, newdata = dat_test, interval = "prediction")
+spmod_preds <- predict(spmod, newdata = dat_test, interval = "prediction", se.fit = TRUE)
 
 
 # compare models
@@ -128,12 +129,12 @@ dat_train <- dat_train %>%
 lmod_cc <- splm(form, data = drop_na(dat_train), spcov_type = "none")
 summary(lmod_cc)
 loocv(lmod_cc)
-lmod_cc_preds <- predict(lmod_cc, newdata = dat_test, interval = "prediction")
+lmod_cc_preds <- predict(lmod_cc, newdata = dat_test, interval = "prediction", se.fit = TRUE)
 
 spmod_cc <- splm(form, data = drop_na(dat_train), spcov_type = "exponential", xcoord = XCOORD, ycoord = YCOORD)
 summary(spmod_cc)
 loocv(spmod_cc)
-spmod_cc_preds <- predict(spmod_cc, newdata = dat_test, interval = "prediction")
+spmod_cc_preds <- predict(spmod_cc, newdata = dat_test, interval = "prediction", se.fit = TRUE)
 
 
 m <- 100
@@ -178,35 +179,39 @@ fixed_out <- bind_rows(
 
 
 lmod_pred_df <- tibble(
-  bias = mean(lmod_preds[, "fit"] - dat_test$VMMI_2016),
-  MSPE = mean((lmod_preds[, "fit"] - dat_test$VMMI_2016)^2),
+  bias = mean(lmod_preds$fit[, "fit"] - dat_test$VMMI_2016),
+  MSPE = mean((lmod_preds$fit[, "fit"] - dat_test$VMMI_2016)^2),
   RMSPE = sqrt(MSPE),
-  cor = cor(lmod_preds[, "fit"], dat_test$VMMI_2016),
-  cover95 = mean(if_else(dat_test$VMMI_2016 >= lmod_preds[, "lwr"] & dat_test$VMMI_2016 <= lmod_preds[, "upr"], 1, 0))
+  se = mean(lmod_preds$se.fit),
+  cor = cor(lmod_preds$fit[, "fit"], dat_test$VMMI_2016),
+  cover95 = mean(if_else(dat_test$VMMI_2016 >= lmod_preds$fit[, "lwr"] & dat_test$VMMI_2016 <= lmod_preds$fit[, "upr"], 1, 0))
 )
 
 spmod_pred_df <- tibble(
-  bias = mean(spmod_preds[, "fit"] - dat_test$VMMI_2016),
-  MSPE = mean((spmod_preds[, "fit"] - dat_test$VMMI_2016)^2),
+  bias = mean(spmod_preds$fit[, "fit"] - dat_test$VMMI_2016),
+  MSPE = mean((spmod_preds$fit[, "fit"] - dat_test$VMMI_2016)^2),
   RMSPE = sqrt(MSPE),
-  cor = cor(spmod_preds[, "fit"], dat_test$VMMI_2016),
-  cover95 = mean(if_else(dat_test$VMMI_2016 >= spmod_preds[, "lwr"] & dat_test$VMMI_2016 <= spmod_preds[, "upr"], 1, 0))
+  se = mean(spmod_preds$se.fit),
+  cor = cor(spmod_preds$fit[, "fit"], dat_test$VMMI_2016),
+  cover95 = mean(if_else(dat_test$VMMI_2016 >= spmod_preds$fit[, "lwr"] & dat_test$VMMI_2016 <= spmod_preds$fit[, "upr"], 1, 0))
 )
 
 lmod_cc_pred_df <- tibble(
-  bias = mean(lmod_cc_preds[, "fit"] - dat_test$VMMI_2016),
-  MSPE = mean((lmod_cc_preds[, "fit"] - dat_test$VMMI_2016)^2),
+  bias = mean(lmod_cc_preds$fit[, "fit"] - dat_test$VMMI_2016),
+  MSPE = mean((lmod_cc_preds$fit[, "fit"] - dat_test$VMMI_2016)^2),
   RMSPE = sqrt(MSPE),
-  cor = cor(lmod_cc_preds[, "fit"], dat_test$VMMI_2016),
-  cover95 = mean(if_else(dat_test$VMMI_2016 >= lmod_cc_preds[, "lwr"] & dat_test$VMMI_2016 <= lmod_cc_preds[, "upr"], 1, 0))
+  se = mean(lmod_cc_preds$se.fit),
+  cor = cor(lmod_cc_preds$fit[, "fit"], dat_test$VMMI_2016),
+  cover95 = mean(if_else(dat_test$VMMI_2016 >= lmod_cc_preds$fit[, "lwr"] & dat_test$VMMI_2016 <= lmod_cc_preds$fit[, "upr"], 1, 0))
 )
 
 spmod_cc_pred_df <- tibble(
-  bias = mean(spmod_cc_preds[, "fit"] - dat_test$VMMI_2016),
-  MSPE = mean((spmod_cc_preds[, "fit"] - dat_test$VMMI_2016)^2),
+  bias = mean(spmod_cc_preds$fit[, "fit"] - dat_test$VMMI_2016),
+  MSPE = mean((spmod_cc_preds$fit[, "fit"] - dat_test$VMMI_2016)^2),
   RMSPE = sqrt(MSPE),
-  cor = cor(spmod_cc_preds[, "fit"], dat_test$VMMI_2016),
-  cover95 = mean(if_else(dat_test$VMMI_2016 >= spmod_cc_preds[, "lwr"] & dat_test$VMMI_2016 <= spmod_cc_preds[, "upr"], 1, 0))
+  se = mean(spmod_cc_preds$se.fit),
+  cor = cor(spmod_cc_preds$fit[, "fit"], dat_test$VMMI_2016),
+  cover95 = mean(if_else(dat_test$VMMI_2016 >= spmod_cc_preds$fit[, "lwr"] & dat_test$VMMI_2016 <= spmod_cc_preds$fit[, "upr"], 1, 0))
 )
 
 
