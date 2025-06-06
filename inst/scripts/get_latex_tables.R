@@ -170,6 +170,30 @@ crossing <- read_csv(here("inst", "output", "simulation", "crossing_summary.csv"
   separate(method, c("x2_imp", "x2_mod", "y_imp"), sep = "_") %>%
   mutate(across(c(x2_imp, x2_mod, y_imp), \(x) map_chr(str_split(x, "-"), \(y) y[3]))) %>%
   mutate(across(c(x2_imp, x2_mod, y_imp), str_to_title)) %>%
-  pivot_wider(names_from = term, values_from = c(mbias, rmse, sterr, cover), names_vary = "slowest")
+  pivot_wider(names_from = term, values_from = c(mbias, rmse, sterr, cover), names_vary = "slowest") %>%
+  relocate(x2_imp, y_imp, x2_mod) %>%
+  arrange(desc(x2_imp), desc(y_imp), desc(x2_mod))
 
-print(xtable(crossing), include.rownames = FALSE)
+print(xtable(crossing), include.rownames = FALSE, digits = 3)
+
+
+# y output (fixed effects)
+include_y <- read_csv(here("inst", "output", "simulation", "include_y_summary.csv")) %>%
+  filter(term %in% c("x1B", "x2")) %>%
+  separate(method, c("method", "include-y"), sep = "_") %>%
+  mutate(method = if_else(method == "norm.boot", "Boot-M", "Reg")) %>%
+  pivot_wider(names_from = term, values_from = c(mbias, rmse, sterr, cover), names_vary = "slowest") %>%
+  arrange(desc(method))
+
+print(xtable(include_y), include.rownames = FALSE, digits = 3)
+
+# y output (prediction)
+include_y <- read_csv(here("inst", "output", "simulation", "include_y_summary.csv")) %>%
+  filter(term %in% c("pred")) %>%
+  arrange(desc(term)) %>%
+  separate(method, c("method", "include-y"), sep = "_") %>%
+  mutate(method = if_else(method == "norm.boot", "Boot-M", "Reg")) %>%
+  select(-term) %>%
+  arrange(desc(method))
+
+print(xtable(include_y), include.rownames = FALSE, digits = 3)
