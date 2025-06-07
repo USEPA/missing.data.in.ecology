@@ -197,3 +197,61 @@ include_y <- read_csv(here("inst", "output", "simulation", "include_y_summary.cs
   arrange(desc(method))
 
 print(xtable(include_y), include.rownames = FALSE, digits = 3)
+
+
+# simulation for supporting information
+
+sim_fixed <- read_csv(here("inst", "output", "simulation", "fixed_summary.csv"))
+sim_pred <- read_csv(here("inst", "output", "simulation", "pred_summary.csv"))
+
+# data wrangle
+sim_pred <- sim_pred %>%
+  mutate(term = "pred") %>%
+  rename(mse = mspe)
+
+methods_keep <- c("bayesian", "cc", "mean", "norm.nob", "norm.nob_multiple", "norm.boot",
+                  "norm.boot_multiple", "norm.predict",
+                  "pmm_1D_type0", "rf", "rf_multiple", "lasso.norm", "lasso.norm_multiple",
+                  "norm", "norm_multiple",
+                  "pmm_3D_type0", "pmm_3D_type0_multiple", "pmm_3D_type1", "pmm_3D_type1_multiple")
+sim <- bind_rows(sim_fixed, sim_pred) %>%
+  filter(term != "(Intercept)", method %in% methods_keep) %>%
+  mutate(rmse = sqrt(mse)) %>%
+  select(term, Method = method, Bias = mbias, RMSE = rmse, Cover95 = cover) %>%
+  pivot_wider(names_from = term, values_from = -c(term, Method)) %>%
+  mutate(Method = case_when(
+    Method == "cc" ~ "CCA",
+    Method == "mean" ~ "Mean",
+    Method == "norm.predict" ~ "Reg",
+    Method == "norm.nob" ~ "StReg-S",
+    Method == "norm.nob_multiple" ~ "StReg-M",
+    Method == "norm.boot" ~ "Boot-S",
+    Method == "norm.boot_multiple" ~ "Boot-M",
+    Method == "norm" ~ "BReg-S",
+    Method == "lasso.norm" ~ "LReg-S",
+    Method == "rf" ~ "RF-S",
+    Method == "pmm_1D_type0" ~ "PMM-1D-T0",
+    Method == "pmm_1D_type1" ~ "PMM-1D-S-T1",
+    Method == "pmm_1D_type1_multiple" ~ "PMM-1D-M-T1",
+    Method == "pmm_3D_type0" ~ "PMM-3D-S-T0",
+    Method == "pmm_3D_type0_multiple" ~ "PMM-3D-M-T0",
+    Method == "pmm_3D_type1" ~ "PMM-3D-S-T1",
+    Method == "pmm_3D_type1_multiple" ~ "PMM-3D-M-T1",
+    Method == "norm_multiple" ~ "BReg-M",
+    Method == "lasso.norm_multiple" ~ "LReg-M",
+    Method == "rf_multiple" ~ "RF-M",
+    Method == "bayesian" ~ "FBDA",
+    .default = Method
+  )) %>%
+  slice(2, 5, 11, 13, 9, 14, 7, 16, 6, 3, 18, 10, 15, 8, 17, 12, 4, 19, 1)
+
+
+sim_fixed <- sim %>%
+  select(Method, Bias_x1B, RMSE_x1B, Cover95_x1B, Bias_x2, RMSE_x2, Cover95_x2)
+
+sim_pred <- sim %>%
+  select(Method, Bias_pred, RMSPE_pred = RMSE_pred, Cover95_pred)
+
+## tables
+print(xtable(sim_fixed), include.rownames = FALSE)
+print(xtable(sim_pred), include.rownames = FALSE)
