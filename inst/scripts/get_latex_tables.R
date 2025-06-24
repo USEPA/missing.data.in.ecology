@@ -255,3 +255,35 @@ sim_pred <- sim %>%
 ## tables
 print(xtable(sim_fixed), include.rownames = FALSE)
 print(xtable(sim_pred), include.rownames = FALSE)
+
+# MNAR output
+mnar_small <- read_csv(here("inst", "output", "simulation", "mnar_summary_small.csv")) %>%
+  mutate(type = "small")
+mnar_moderate <- read_csv(here("inst", "output", "simulation", "mnar_summary_moderate.csv")) %>%
+  mutate(type = "moderate")
+mnar_large <- read_csv(here("inst", "output", "simulation", "mnar_summary_large.csv")) %>%
+  mutate(type = "large")
+mnar <- bind_rows(mnar_small, mnar_moderate, mnar_large) %>%
+  arrange(type) %>%
+  mutate(model = case_when(
+    model == "MAR/MCAR" ~ "MAR",
+    model == "heckman" ~ "Heckman",
+    .default = model
+  )) %>%
+  mutate(type = str_to_title(type))
+mnar_fixed <- mnar %>%
+  filter(variable != "y_ho", variable != "marg_b_y[1]")
+mnar_pred <- mnar %>%
+  filter(variable == "y_ho")
+
+mnar_fixed %>%
+  filter(model %in% c("MAR", "Heckman")) %>%
+  pivot_wider(names_from = variable, values_from = c(mbias, rmse, se, cover95), names_vary = "slowest") %>%
+  xtable() %>%
+  print(include.rownames = FALSE)
+
+mnar_pred %>%
+  filter(model %in% c("MAR", "Heckman")) %>%
+  pivot_wider(names_from = variable, values_from = c(mbias, rmse, se, cover95), names_vary = "slowest") %>%
+  xtable() %>%
+  print(include.rownames = FALSE)
