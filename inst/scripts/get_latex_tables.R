@@ -89,6 +89,10 @@ sim_imp_pred <- sim_imp %>%
   left_join(sim_pred) %>%
   select(Method, contains("pred"))
 
+sim_imp_fixed <- sim_imp_fixed %>%
+  relocate(Method, Bias_x2, RMSE_x2, Cover95_x2)
+sim_imp_pred <- sim_imp_pred %>%
+  relocate(Method, Bias_pred, RMSPE_pred, Cover95_pred)
 print(xtable(sim_imp_fixed), include.rownames = FALSE)
 print(xtable(sim_imp_pred), include.rownames = FALSE)
 
@@ -284,6 +288,16 @@ mnar_fixed %>%
 
 mnar_pred %>%
   filter(model %in% c("MAR", "Heckman")) %>%
+  pivot_wider(names_from = variable, values_from = c(mbias, rmse, se, cover95), names_vary = "slowest") %>%
+  xtable() %>%
+  print(include.rownames = FALSE)
+
+mnar_fixed %>%
+  pivot_wider(names_from = variable, values_from = c(mbias, rmse, se, cover95), names_vary = "slowest") %>%
+  xtable() %>%
+  print(include.rownames = FALSE)
+
+mnar_pred %>%
   pivot_wider(names_from = variable, values_from = c(mbias, rmse, se, cover95), names_vary = "slowest") %>%
   xtable() %>%
   print(include.rownames = FALSE)
