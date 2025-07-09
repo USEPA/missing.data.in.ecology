@@ -18,8 +18,8 @@ methods_keep <- c("bayesian", "cc", "mean", "norm.nob", "norm.nob_multiple", "no
                   "pmm_3D_type0", "pmm_3D_type0_multiple", "pmm_3D_type1", "pmm_3D_type1_multiple")
 sim <- bind_rows(sim_fixed, sim_pred) %>%
   filter(term != "(Intercept)", method %in% methods_keep) %>%
-  mutate(rmse = sqrt(mse)) %>%
-  select(term, Method = method, Bias = mbias, RMSE = rmse, Cover95 = cover) %>%
+  mutate(rmse = sqrt(mse), SE = sqrt(mvar)) %>%
+  select(term, Method = method, Bias = mbias, RMSE = rmse, SE, Cover95 = cover) %>%
   pivot_wider(names_from = term, values_from = -c(term, Method)) %>%
   mutate(Method = case_when(
     Method == "cc" ~ "CCA",
@@ -43,10 +43,10 @@ sim <- bind_rows(sim_fixed, sim_pred) %>%
 
 
 sim_fixed <- sim %>%
-  select(Method, Bias_x1B, RMSE_x1B, Cover95_x1B, Bias_x2, RMSE_x2, Cover95_x2)
+  select(Method, Bias_x1B, RMSE_x1B, SE_x1B, Cover95_x1B, Bias_x2, RMSE_x2, SE_x2, Cover95_x2)
 
 sim_pred <- sim %>%
-  select(Method, Bias_pred, RMSPE_pred = RMSE_pred, Cover95_pred)
+  select(Method, Bias_pred, RMSPE_pred = RMSE_pred, SE_pred, Cover95_pred)
 
 ## tables
 print(xtable(sim_fixed), include.rownames = FALSE)
